@@ -1,3 +1,3 @@
 # K-Paths
 
-![K-Paths Overview](assets/K-paths-overview.pdf)
+![K-Paths Overview](assets/K-paths-overview.png)
