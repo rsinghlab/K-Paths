@@ -9,6 +9,7 @@ import pandas as pd
 from datasets import Dataset
 from vllm import LLM, SamplingParams
 from transformers import set_seed
+from huggingface_hub import login
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s -   %(message)s",
@@ -17,7 +18,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
+token = os.getenv("HUGGINGFACE_HUB_TOKEN")
+login(token)
 # #closed KG drugbank prompt (with labels)
 DRUGBANK_WITH_OPTIONS_PROMPT = (
     "You are a pharmacodynamics expert. Answer the questions using the given knowledge graph information (if available) and your medical expertise."
@@ -68,12 +70,39 @@ DEFAULT_INSTRUCT_TEMPLATE = (
     "Your answer must be concise and formatted as follows: ##Answer: Indications>.\n"  ##Answer: <Indications>.\n" the specific effect or mechanism of interaction, the specific level of severit
 )
 
+# KG-enhanced prompt for PharmacotherapyDB (used when KG is included)
+PHARMACOTHERAPYDB_KG_PROMPT = (
+    "You are a pharmacodynamics expert. Answer the questions using the given knowledge graph information (if available), essential parts of the drug definitions, and your medical expertise.\n"
+    "Base your answer on evidence of known interaction mechanisms, pharmacological effects, or similarities to related compounds if applicable.\n"
+    "Avoid generalizations unless directly supported by the knowledge graph.\n"
+    "Focus exclusively on the therapeutic indication between the specified drugs and conditions. Exclude speculative details or unrelated pathways unless they directly support the indication.\n"
+    "Your answer must be concise and formatted as follows: ##Answer: <Indications>.\n"
+)
+
+# Base-model-only prompt (used when KG is not included)
+PHARMACOTHERAPYDB_BASE_PROMPT = (
+    "You are a pharmacodynamics expert. Answer the questions using your medical expertise.\n"
+    "Base your answer on evidence of known interaction mechanisms, pharmacological effects, or similarities to related compounds if applicable.\n"
+    "Focus exclusively on the therapeutic indication between the specified drugs and conditions.\n"
+    "Your answer must be concise and formatted as follows: ##Answer: <Indications>.\n"
+)
+
+
+# SYSTEM_INSTRUCTION_PROMPT = {
+#     "drugbank_with_options": DRUGBANK_WITH_OPTIONS_PROMPT,
+#     "drugbank_with_bullets": DRUGBANK_WITH_BULLETS_PROMPT,
+#     "drugbank_open": DRUGBANK_OPEN_PROMPT,
+#     "ddinter_common": DDINTER_PROMPT,
+# }
+
 SYSTEM_INSTRUCTION_PROMPT = {
     "drugbank_with_options": DRUGBANK_WITH_OPTIONS_PROMPT,
     "drugbank_with_bullets": DRUGBANK_WITH_BULLETS_PROMPT,
     "drugbank_open": DRUGBANK_OPEN_PROMPT,
     "ddinter_common": DDINTER_PROMPT,
+    "pharmacotherapydb": lambda use_kg: PHARMACOTHERAPYDB_KG_PROMPT if use_kg else PHARMACOTHERAPYDB_BASE_PROMPT,
 }
+
 
 DRUGBANK_OPTIONS = {
     0: "#Drug1 may increase the photosensitizing activities of #Drug2.",
@@ -171,6 +200,11 @@ TEXTDDI_OPTIONS = {
     "Minor": "The interactions would limit the clinical effects. The manifestations may include an increase in frequency or severity of adverse effects, but usually they do not require changes in therapy.",
 }
 
+PHARMACOTHERAPYDB_OPTIONS = {
+    "Disease-modifying": "The drug therapeutically changes the underlying or downstream biology of the disease.",
+    "Palliates": "The drug only alleviates symptoms without altering disease progression.",
+    "Non-indication": "The drug neither therapeutically changes the disease nor treats its symptoms.",
+}
 
 KG_DATASET_PATH = {
     "drugbank": {
@@ -180,6 +214,10 @@ KG_DATASET_PATH = {
     "ddinter": {
         "train": "files/dataset_with_paths/ddinter_train_add_reverse.json",
         "test": "files/dataset_with_paths/ddinter_test_add_reverse.json",
+    },
+    "pharmacotherapydb": {
+        "train": "files/dataset_with_paths/pharmdb_train_add_reverse.json",
+        "test": "files/dataset_with_paths/pharmdb_test_add_reverse.json",
     },
 }
 
@@ -332,6 +370,7 @@ def ddinter_chat_template(dataset, tokenizer, args):
 
         # user_content = system_prompt + "Question: " + (example["question"]) + "\n"
         test_prompt = "Question: " + (example["question"]) + "\n"
+        user_content = system_prompt + test_prompt
 
         if args.use_drug_descriptions:
             user_content += (
@@ -358,12 +397,46 @@ def ddinter_chat_template(dataset, tokenizer, args):
     )
     return dataset
 
+def pharmacotherapydb_chat_template(dataset, tokenizer, args):
+    def apply_template(example):
+        question = f"What is the therapeutic indication of {example['drug_name']} for {example['disease_name']}?"
+        system_prompt = SYSTEM_INSTRUCTION_PROMPT["pharmacotherapydb"](args.use_kg)
+
+        if args.use_options:
+            option_str = "\n".join(
+                [f"- {opt}: {desc}" for opt, desc in PHARMACOTHERAPYDB_OPTIONS.items()]
+            )
+            system_prompt += "\nOptions:\n" + option_str
+
+        user_prompt = system_prompt + "\nQuestion: " + question + "\n"
+
+        if args.use_drug_descriptions:
+            user_prompt += (
+                f"Drug description:\n{example['drug_name']}: {example['drug_desc']}\n"
+            )
+
+        if args.use_kg:
+            user_prompt += "Knowledge Graph Information:\n" + (example["path_str"]) + "\n"
+
+        processed_input = tokenizer.apply_chat_template(
+            [{"role": "user", "content": user_prompt}],
+            tokenize=False,
+        )
+        return {"input": processed_input}
+
+    dataset = dataset.map(
+        apply_template, num_proc=8, remove_columns=dataset.column_names
+    )
+    return dataset
+
 
 def apply_chat_template(dataset, tokenizer, args):
     if args.dataset_name == "drugbank":
         dataset = drugbank_chat_template(dataset, tokenizer, args)
     elif args.dataset_name == "ddinter":
         dataset = ddinter_chat_template(dataset, tokenizer, args)
+    elif args.dataset_name == "pharmacotherapydb":
+        dataset = pharmacotherapydb_chat_template(dataset, tokenizer, args)
     else:
         raise ValueError(f"Dataset {args.dataset_name} not supported")
 
@@ -413,6 +486,7 @@ def main(args):
     logger.info(f"Number of GPUs: {num_gpus}")
 
     logger.info(f"Loading model: {args.model_name_or_path}")
+
     model = LLM(
         args.model_name_or_path,
         tensor_parallel_size=num_gpus,
@@ -475,9 +549,10 @@ if __name__ == "__main__":
         "--dataset_name",
         type=str,
         default="drugbank",
-        choices=["drugbank", "ddinter"],
+        choices=["drugbank", "ddinter", "pharmacotherapydb"],
         help="Name of the dataset",
     )
+
     parser.add_argument(
         "--dataset_path",
         type=str,
