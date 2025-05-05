@@ -1,0 +1,5 @@
+pandas
+datasets
+vllm
+transformers
+huggingface_hub
