@@ -8,5 +8,6 @@ K-Paths Overview: (1) Given a query about the effect of an entity ($u$) on anoth
 [📖 Paper](https://arxiv.org/abs/2502.13344) | [🤗 Hugging Face Dataset](https://huggingface.co/Tassy24)
 
 # News 🎉
+- K-Paths has been accepted as a conference paper at KDD 2025, Toronto, Canada.
 - The K-Paths repo is currently undergoing careful construction.
   - Stay tuned for updates!
