@@ -32,27 +32,35 @@ K-Paths Overview: (1) Given a query about the effect of an entity ($u$) on anoth
 
 ## Usage
 - Requires Python 3.10+
-- Install dependenicies (pip -r requirements.txt)
+- Install dependencies (pip install -r requirements.txt)
 
-## Step by Step workflow:
+## Use or Extract Reasoning Paths:
 - To use the multihop paths directly for inference, download via [🤗 Hugging Face Dataset](https://huggingface.co/Tassy24)
 
-- To reproduce fro scratch
-### Step 1: Download the data
-Download the dataset bundle from:  
-[📦 data.zip (Google Drive)](https://drive.google.com/file/d/1_6meo_nB2RqHrVM9pqCBA67FQ6PR4QiI/view?usp=drive_link)
+## To Reproduce Paths and Subgraphs from Scratch
 
-### Step 2: Create Augmented network for the supported datasets:
- example: python k-paths/src/create_augmented_network.py
+- **Step 1:** Download the required data (Hetionet, etc.)  
+  Download the dataset bundle from:  
+  [📦 data.zip (Google Drive)](https://drive.google.com/file/d/1_6meo_nB2RqHrVM9pqCBA67FQ6PR4QiI/view?usp=drive_link)
 
-### Step 3 : Extract K reasoning paths: example: 
-python k-paths/src/get-Kpaths.py \
-  --dataset ddinter \
-  --split test \
-  --mode K-paths \
-  --add_reverse_edges
+- **Step 2:** Create Augmented network for the supported datasets:  
+  - Example:
+    ```python
+    python k-paths/src/create_augmented_network.py
+    ```
 
+- **Step 3:** Extract K reasoning paths:  
+  - Example:
+    ```python
+    python k-paths/src/get-Kpaths.py \
+      --dataset ddinter \
+      --split test \
+      --mode K-paths \
+      --add_reverse_edges
+    ```
 
-### Step 4: Create subgraphs for GNN input:
-example: python k-paths/src/get-subgraph.py
-
+- **Step 4:** Create subgraphs for GNN input:  
+  - Example:
+    ```python
+    python k-paths/src/get-subgraph.py
+    ```
