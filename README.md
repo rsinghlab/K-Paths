@@ -92,7 +92,7 @@ K-Paths Overview: (1) Given a query about the effect of an entity ($u$) on anoth
   - Example:
     ```python
     python llm/evaluate_llm_regex.py \
-      --prediction_path output/google-txgemma-27b-chat-outputs-paths-drugbank_test_add_reverse-json-predictions-text.csv \
-      --dataset pharmacotherapyDB \
+      --prediction_path output/google-txgemma-27b-chat-outputs-paths-drugbank_test_add_reverse-json-predictions.csv \
+      --dataset drugbank \
       --model_style tx_gemma
     ```
