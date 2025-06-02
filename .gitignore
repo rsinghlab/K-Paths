@@ -1,2 +1,5 @@
 data
 .DS_Store
+kpaths-env
+__pycache__/
+__MACOSX
