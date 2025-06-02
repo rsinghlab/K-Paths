@@ -34,15 +34,15 @@ K-Paths Overview: (1) Given a query about the effect of an entity ($u$) on anoth
 - Requires Python 3.10+
 - Install dependencies (pip install -r requirements.txt)
 
-## Use or Extract Reasoning Paths:
+## Quick Start: Use Reasoning Paths:
 - To use the multihop paths directly for inference, download via [🤗 Hugging Face Dataset](https://huggingface.co/Tassy24)
 
-## To Reproduce Paths and Subgraphs from Scratch
+## To Reproduce/Extract Paths and Subgraphs from Scratch
 
 - **Step 1:** Download the required data (Hetionet, etc.)  
   Download the dataset bundle from:  
   [📦 data.zip (Google Drive)](https://drive.google.com/file/d/1_6meo_nB2RqHrVM9pqCBA67FQ6PR4QiI/view?usp=drive_link)
-  - Extract the `data.zip` file **into the root directory of this repository**, so that the structure looks like:
+  - Extract the `data.zip` file so that the structure looks like:
     ```
     K-Paths/
     ├── data/
