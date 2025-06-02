@@ -64,3 +64,27 @@ K-Paths Overview: (1) Given a query about the effect of an entity ($u$) on anoth
     ```python
     python k-paths/src/get-subgraph.py
     ```
+
+## 🔍 To Run Zero-Shot Inference and Evaluation
+
+- Step 1:Run zero-shot inference using a supported LLM:  
+  *(Use `llm/llm_inference_v2.py` for Tx-Gemma models)*  
+  - ⚠️ **Tip:** Use `--help` to view all supported flags and options (e.g., `--use_kg`, `--use_options`, or `--option_style`)
+  - Example:
+    ```python
+    python llm/llm_inference.py \
+      --dataset_path data/paths/drugbank_test_add_reverse.json \
+      --dataset_name drugbank \
+      --output_dir outputs/drugbank \
+      --model_name_or_path meta-llama/Meta-Llama-3.1-8B-Instruct \
+      --use_kg
+    ```
+
+- **Step 2:** Evaluate the model's predictions using regex matching:  
+  - Example:
+    ```python
+    python llm/evaluate_llm_regex.py \
+      --prediction_path output/google-txgemma-27b-chat-outputs-paths-drugbank_test_add_reverse-json-predictions-text.csv \
+      --dataset pharmacotherapyDB \
+      --model_style tx_gemma
+    ```
