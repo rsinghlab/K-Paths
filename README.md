@@ -10,7 +10,7 @@ K-Paths Overview: (1) Given a query about the effect of an entity ($u$) on anoth
 ---
 # News 
 - May'25: K-Paths has been accepted as a conference paper at [KDD 2025](https://kdd2025.kdd.org/), Toronto, Canada! 🎉
-- Feb'25: Feb 2025: Read the K-Paths manuscript on [arXiv](https://arxiv.org/abs/2502.13344)
+- Feb'25: Feb 2025: Read the K-Paths manuscript on [arXiv](https://arxiv.org/abs/2502.13344).
 ---
 ## Features
 - Extract multi-hop reasoning paths between entity pairs from a knowledge graph.
