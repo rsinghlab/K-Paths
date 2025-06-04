@@ -19,8 +19,8 @@ K-Paths Overview: (1) Given a query about the effect of an entity ($u$) on anoth
 
 ---
 ## Supported Datasets
-- Drugbank (Drug–drug interaction type classification),
-- PharmacotherapyDB (Drug repurposing), 
+- Drugbank (Drug–drug interaction type classification)
+- PharmacotherapyDB (Drug repurposing)
 - DDinter (Drug–drug interaction severity classification)
 
 ---
