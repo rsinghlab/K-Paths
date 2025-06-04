@@ -15,32 +15,31 @@ K-Paths Overview: (1) Given a query about the effect of an entity ($u$) on anoth
 ---
 ## Features
 - Extract multi-hop reasoning paths between entity pairs from a knowledge graph.
-- Generate subgraphs via pruning, suitable for downstream GNN training.
+- Generate subgraphs via pruning, suitable for GNN training.
 - Supports zero-shot LLM inference and automatic evaluation (exact-match using regex & BERTScore).
 
 ---
-## Coming Soon
-- Custom Augmented Networks: Generate and modify augmented knowledge graphs by combining Hetionet with your own training data.
-- LLM Fine-Tuning: Add support to fine-tune large language models using path-based data.
-- GNN Training & Inference: Add support for fine-tuning and running GNN models on the extracted subgraphs.
-
----
-## Dataset support:
+## Supported Datasets
 - Drugbank (Drug–drug interaction type classification),
 - PharmacotherapyDB (Drug repurposing), 
 - DDinter (Drug–drug interaction severity classification)
 
-## Usage
-- Requires Python 3.10+
-- Install dependencies (pip install -r requirements.txt)
+---
 
-## Quick Start: Use Reasoning Paths:
+## Installation
+- Requires Python 3.10+
+- Install dependencies:
+```
+pip install -r requirements.txt
+```
+
+## Use Pre-Extracted Reasoning Paths
 - To use the multihop paths directly for inference, download via [🤗 Hugging Face Dataset](https://huggingface.co/Tassy24)
 
-## To Reproduce/Extract Paths and Subgraphs from Scratch
+## Path and Subgraph Extraction from scratch
 
-- **Step 1:** Download the required data (Hetionet, etc.)  
-  Download the dataset bundle from:  
+- **Step 1:** Download data
+  GET the dataset bundle from:  
   [📦 data.zip (Google Drive)](https://drive.google.com/file/d/1_6meo_nB2RqHrVM9pqCBA67FQ6PR4QiI/view?usp=drive_link)
   - Extract the `data.zip` file so that the structure looks like:
     ```
@@ -51,48 +50,75 @@ K-Paths Overview: (1) Given a query about the effect of an entity ($u$) on anoth
     │       └── ...
     ```
 
-- **Step 2:** Create Augmented network for the supported datasets:  
-  - Example:
-    ```python
-    python k-paths/src/create_augmented_network.py
-    ```
+- **Step 2:** Create Augmented KG:  
+  ```python
+  python k-paths/create_augmented_network.py
+  ```
 
-- **Step 3:** Extract K reasoning paths:  
-  - Example:
-    ```python
-    python k-paths/src/get-Kpaths.py \
-      --dataset ddinter \
-      --split test \
-      --mode K-paths \
-      --add_reverse_edges
-    ```
+- **Step 3:** Extract `K` reasoning paths:  
+  ```python
+  python k-paths/get-Kpaths.py \
+    --dataset ddinter \
+    --split test \
+    --mode K-paths \
+    --add_reverse_edges
+  ```
 
 - **Step 4:** Create subgraphs for GNN input:  
-  - Example:
-    ```python
-    python k-paths/src/get-subgraph.py
-    ```
+  ```python
+  python k-paths/get-subgraph.py
+  ```
 
-## 🔍 To Run Zero-Shot Inference and Evaluation
+## Zero-Shot LLM Inference and Evaluation
 
-- Step 1:Run zero-shot inference using a supported LLM:  
+- Inference
   *(Use `llm/llm_inference_v2.py` for Tx-Gemma models)*  
-  - ⚠️ **Tip:** Use `--help` to view all supported flags and options (e.g., `--use_kg`, `--use_options`, or `--option_style`)
-  - Example:
-    ```python
-    python llm/llm_inference.py \
-      --dataset_path data/paths/drugbank_test_add_reverse.json \
-      --dataset_name drugbank \
-      --output_dir outputs/drugbank \
-      --model_name_or_path meta-llama/Meta-Llama-3.1-8B-Instruct \
-      --use_kg
-    ```
+  ```python
+  python llm/llm_inference.py \
+    --dataset_path data/paths/drugbank_test_add_reverse.json \
+    --dataset_name drugbank \
+    --output_dir outputs/drugbank \
+    --model_name_or_path meta-llama/Meta-Llama-3.1-8B-Instruct \
+    --use_kg
+  ```
+> Use `--help` to see flags like `--use_options`, `--option_style`.
 
-- **Step 2:** Evaluate the model's predictions using regex matching:  
-  - Example:
-    ```python
-    python llm/evaluate_llm_regex.py \
-      --prediction_path output/google-txgemma-27b-chat-outputs-paths-drugbank_test_add_reverse-json-predictions.csv \
-      --dataset drugbank \
-      --model_style tx_gemma
-    ```
+- Evaluation
+  ```python
+  python llm/evaluate_llm_regex.py \
+    --prediction_path output/google-txgemma-27b-chat-outputs-paths-drugbank_test_add_reverse-json-predictions.csv \
+    --dataset drugbank \
+    --model_style tx_gemma
+  ```
+
+---
+## GNN Training & Evaluation
+
+- Train RGCN
+  ```python
+  python gnn/train.py \
+    --seed "${SEED}" \
+    --train_file_path path_to_your_train_set.csv \
+    --hetionet_triplet_file path_to_hetionet.txt \
+    --node_file path_to_node2id.json \
+    --entity_drug_file path_to_BKG_entity2Id.json \
+    --use_text_embeddings \
+    --model_save_path "trained_model_seed${SEED}.pt"
+
+  ```
+  
+- Evaluate Trained Model
+  ```python
+  python gnn/eval.py \
+    --model_path "trained_model_seed${SEED}.pt" \
+    --train_file_path path_to_your_train_set.csv \
+    --test_file path_to_your_test_set.csv \
+    --hetionet_triplet_file path_to_hetionet.txt \
+    --node_file path_to_node2id.json \
+    --use_text_embeddings \
+  ```
+> Note: Most optional arguments (e.g., `--embedding_dim`, `--log_file`, `--output_predictions`) have sensible defaults.
+
+## Coming Soon
+- Custom Augmented Networks: Generate and modify augmented knowledge graphs by combining Hetionet with your own training data.
+- LLM Fine-Tuning: Add support to fine-tune large language models using path-based data.
