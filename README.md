@@ -8,10 +8,9 @@ K-Paths Overview: (1) Given a query about the effect of an entity ($u$) on anoth
 [📖 Paper](https://arxiv.org/abs/2502.13344) | [🤗 Hugging Face Dataset](https://huggingface.co/Tassy24)
 
 ---
-# News 🎉
-- K-Paths has been accepted as a conference paper at KDD 2025, Toronto, Canada.
-- The repo is currently under active development — stay tuned for new features!
-
+# News 
+- May'25: K-Paths has been accepted as a conference paper at [KDD 2025](https://kdd2025.kdd.org/), Toronto, Canada! 🎉
+- Feb'25: Feb 2025: Read the K-Paths manuscript on [arXiv](https://arxiv.org/abs/2502.13344)
 ---
 ## Features
 - Extract multi-hop reasoning paths between entity pairs from a knowledge graph.
@@ -28,8 +27,14 @@ K-Paths Overview: (1) Given a query about the effect of an entity ($u$) on anoth
 
 ## Installation
 - Requires Python 3.10+
-- Install dependencies:
+### Create and activate a virtual environment
+```bash
+python3.10 -m venv .kpaths-env
+source .kpaths-env/bin/activate  # On macOS/Linux
+# .\kpaths-env\Scripts\activate  # On Windows
 ```
+### Install dependencies
+```bash
 pip install -r requirements.txt
 ```
 
@@ -106,7 +111,7 @@ pip install -r requirements.txt
     --model_save_path "trained_model_seed${SEED}.pt"
 
   ```
-  
+
 - Evaluate Trained Model
   ```python
   python gnn/eval.py \
