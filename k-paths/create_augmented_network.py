@@ -34,6 +34,7 @@ PATHS = {
         "train_file":"data/pharmaDB/pharmaDB_train.txt",
         "data_relations": "data/pharmaDB/pharmaDB_relations.json"
         }
+        
 
         }
 
