@@ -312,7 +312,6 @@ def drugbank_chat_template(dataset, tokenizer, args):
             )
 
         if args.use_kg:
-            # TODO: change paths to filtered_paths
             user_content += (
                 "Knowledge Graph Information:\n" + (example["path_str"]) + "\n"
             )
@@ -567,7 +566,7 @@ if __name__ == "__main__":
     parser.add_argument("--max_tokens", type=int, default=100)
 
     # experiment parameters
-    parser.add_argument("--few_shot", action="store_true")  # TODO: implement few shot
+    parser.add_argument("--few_shot", action="store_true")  
     parser.add_argument(
         "--num_shots", type=int, default=1, help="number of shots per example"
     )  #
